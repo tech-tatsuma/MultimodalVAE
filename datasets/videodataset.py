@@ -24,10 +24,13 @@ class VideoDataset(Dataset):
         return len(self.videos)
 
     def __getitem__(self, idx):
+
         # 動画データのパスを取得
         video_path = self.videos[idx]
+
         # 動画データを読み込み
         cap = cv2.VideoCapture(video_path)
+
         # キャッシュのパスを取得
         cache_path = os.path.join(self.cache_dir, f"{idx}.pkl")
 
@@ -38,6 +41,7 @@ class VideoDataset(Dataset):
             return frames
 
         frames = []
+
         for _ in range(8):  # 最初の8フレームのみ読み込む
             ret, frame = cap.read()
             if not ret:
@@ -53,8 +57,10 @@ class VideoDataset(Dataset):
             transforms.Resize((64, 64)),
             transforms.ToTensor(),
         ])
+
         # 画像をリストに格納
         frames = [transform(frame) for frame in frames]
+        
         # 画像のリストをテンソルに変換し、それを動画データとする
         frames = torch.stack(frames)
 
@@ -63,49 +69,3 @@ class VideoDataset(Dataset):
             pickle.dump(frames, f)
 
         return frames
-
-class KineticsDatasets(Dataset):
-    def __init__(self, root, frames_per_clip=25, split='train', cache="./", transform=None):
-        """
-        :param root: Kinetics データセットが格納されているディレクトリのパス
-        :param frames_per_clip: 各クリップに含まれるフレームの数
-        :param split: データセットの分割 ('train', 'validate', 'test')
-        :param cache: キャッシュディレクトリへのパス
-        :param transform: データに適用する変換
-        """
-        transform = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((64, 64)),
-            transforms.ToTensor(),
-        ])
-        self.dataset = Kinetics400(root=root, frames_per_clip=frames_per_clip, split=split, transform=transform)
-        self.cache_dir = cache
-
-        # キャッシュディレクトリがなければ作成
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
-
-    def __len__(self):
-        return len(self.dataset)
-
-    def __getitem__(self, idx):
-        # キャッシュのパスを取得
-        cache_path = os.path.join(self.cache_dir, f"{idx}.pkl")
-
-        # キャッシュが存在すればそこから読み込み
-        if os.path.exists(cache_path):
-            with open(cache_path, 'rb') as f:
-                clip = pickle.load(f)
-            return clip[:8]  # 最初の8フレームのみを返す
-
-        # 動画データからクリップ数のデータを取得
-        clip, _, _ = self.dataset[idx]
-
-        # 最初の8フレームを取得し、変換を適用
-        clip = [self.transform(frame) for frame in clip[:8]]
-
-        # キャッシュに保存
-        with open(cache_path, 'wb') as f:
-            pickle.dump(clip, f)
-
-        return clip

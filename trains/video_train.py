@@ -41,13 +41,9 @@ def train(opt):
     learning_rate = opt.learning_rate
     batch_size = opt.batch_size
     cache = opt.cache
-    iskinetics = opt.kinetics
 
     # デーセットの作成
-    if iskinetics=='true':
-        dataset = KineticsDatasets(root='./data')
-    else:
-        dataset = VideoDataset(directory='./data', frame_rate=25, clip_length=1, cache=cache)
+    dataset = VideoDataset(directory='./data', frame_rate=25, clip_length=1, cache=cache)
 
     train_size = int(0.7 * len(dataset))
     val_size = int(0.2 * len(dataset))
@@ -219,7 +215,6 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=42, help='Seed for random number generators')
     parser.add_argument('--batch',type=int, default=20, help='batch size')
     parser.add_argument('--cache', type=str, default='./', help='cache directory path')
-    parser.add_argument('--kinetics', type=str, default='true')
 
     # オプションを標準出力する
     print(opt)

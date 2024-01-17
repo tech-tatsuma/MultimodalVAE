@@ -14,13 +14,19 @@ class ImageDataset(Dataset):
         :param cache: キャッシュディレクトリへのパス
         :param transform: データに適用する変換
         """
+        # 画像に対する前処理の設定
         self.transform = transforms.Compose([
             transforms.Resize((64, 64)),
             transforms.ToTensor(),
         ]) if transform is None else transform
+
+        # ImageNet データセットの読み込み
         self.dataset = ImageNet(root=root, split=split, transform=self.transform)
+
+        # キャッシュディレクトリの設定
         self.cache_dir = cache
 
+        # キャッシュディレクトリが存在しなければ作成
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
 
